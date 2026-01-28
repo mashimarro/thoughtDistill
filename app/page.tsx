@@ -34,8 +34,7 @@ export default function Home() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // 只在 Ctrl/Cmd + Enter 时提交，避免误触
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
     }
@@ -82,7 +81,7 @@ export default function Home() {
 
         {/* 提示文字 */}
         <p className="text-center text-sm text-gray-500">
-          按 Cmd/Ctrl + Enter 提交，Enter 换行
+          按 Enter 提交，Shift + Enter 换行
         </p>
       </div>
     </main>
