@@ -100,6 +100,20 @@ export default function OrganizeIdeaPage() {
   const handleUserMessage = async (message: string) => {
     if (!idea) return;
     
+    // 检测用户是否表达了要保存笔记的意图
+    const saveIntentKeywords = ['保存', '沉淀', '生成', '确认', '好的', '可以了', '没问题'];
+    const noteKeywords = ['笔记', '卡片', '记录'];
+    const messageLower = message.toLowerCase();
+    
+    const hasSaveIntent = saveIntentKeywords.some(keyword => messageLower.includes(keyword));
+    const hasNoteKeyword = noteKeywords.some(keyword => messageLower.includes(keyword));
+    
+    // 如果用户明确表达要保存，且已有待保存的笔记
+    if ((hasSaveIntent && hasNoteKeyword) && pendingNote) {
+      await handleSaveNote();
+      return;
+    }
+    
     // 保存用户消息
     const userConv = await saveConversation('user', message);
     if (!userConv) return;

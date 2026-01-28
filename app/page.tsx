@@ -56,7 +56,7 @@ export default function Home() {
             value={idea}
             onChange={(e) => setIdea(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="记录你的想法..."
+            placeholder="说说你的想法，不用顾及逻辑，AI会通过提问帮你梳理清楚"
             className="w-full min-h-[200px] px-6 py-4 text-lg border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             disabled={isSubmitting}
           />
