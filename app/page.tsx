@@ -41,7 +41,7 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-4 md:p-8">
+    <main className="h-full flex flex-col items-center justify-center p-4 md:p-8">
       <div className="max-w-3xl w-full space-y-8">
         {/* Slogan */}
         <div className="text-center space-y-4">
