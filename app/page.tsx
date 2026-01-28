@@ -1,50 +1,87 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
   const router = useRouter();
+  const [idea, setIdea] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleRecordClick = () => {
-    console.log('记录新想法按钮被点击');
-    router.push('/record');
+  const handleSubmit = async () => {
+    if (!idea.trim() || isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      const { apiCall } = await import('@/lib/api-client');
+      const response = await apiCall('/api/ideas', {
+        method: 'POST',
+        body: JSON.stringify({ content: idea }),
+      });
+
+      if (response.ok) {
+        const { idea: newIdea } = await response.json();
+        router.push(`/organize/${newIdea.id}`);
+      } else {
+        alert('保存失败，请重试');
+      }
+    } catch (error) {
+      console.error('提交想法失败:', error);
+      alert('提交失败，请重试');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleOrganizeClick = () => {
-    console.log('整理已有想法按钮被点击');
-    router.push('/organize');
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      handleSubmit();
+    }
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-8">
-      <div className="max-w-2xl w-full space-y-8">
+    <main className="min-h-screen flex flex-col items-center justify-center p-4 md:p-8">
+      <div className="max-w-3xl w-full space-y-8">
+        {/* Slogan */}
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-gray-900">思路梳理</h1>
-          <p className="text-lg text-gray-600">
-            AI 辅助你梳理模糊的想法，沉淀为清晰的卡片笔记
-          </p>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+            每个灵光一闪，都是你独有的资产
+          </h1>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <button
-            onClick={handleRecordClick}
-            className="p-8 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200 cursor-pointer"
-          >
-            <div className="text-4xl mb-4">🆕</div>
-            <h2 className="text-xl font-semibold mb-2">记录新想法</h2>
-            <p className="text-gray-600">快速记录你的灵感和想法</p>
-          </button>
-
-          <button
-            onClick={handleOrganizeClick}
-            className="p-8 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200 cursor-pointer"
-          >
-            <div className="text-4xl mb-4">📝</div>
-            <h2 className="text-xl font-semibold mb-2">整理已有想法</h2>
-            <p className="text-gray-600">通过 AI 对话深化你的思考</p>
-          </button>
+        {/* 输入框 */}
+        <div className="relative">
+          <textarea
+            value={idea}
+            onChange={(e) => setIdea(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="记录你的想法..."
+            className="w-full min-h-[200px] px-6 py-4 text-lg border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            disabled={isSubmitting}
+          />
+          
+          <div className="absolute bottom-4 right-4 flex items-center gap-3">
+            <span className="text-sm text-gray-400">
+              {idea.length > 0 && `${idea.length} 字`}
+            </span>
+            <button
+              onClick={handleSubmit}
+              disabled={!idea.trim() || isSubmitting}
+              className={`px-6 py-2 rounded-lg font-medium transition-all ${
+                idea.trim() && !isSubmitting
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              {isSubmitting ? '提交中...' : '开始整理'}
+            </button>
+          </div>
         </div>
 
+        {/* 提示文字 */}
+        <p className="text-center text-sm text-gray-500">
+          按 {typeof navigator !== 'undefined' && navigator.platform.includes('Mac') ? 'Cmd' : 'Ctrl'} + Enter 快速提交
+        </p>
       </div>
     </main>
   );

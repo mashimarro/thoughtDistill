@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Home, Inbox, BookOpen, ChevronRight, ChevronDown } from 'lucide-react';
+import { Home, Inbox, BookOpen, ChevronRight, ChevronDown, Menu, X } from 'lucide-react';
 import { Idea, Note } from '@/types';
 
 export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [inboxOpen, setInboxOpen] = useState(false);
   const [notebookOpen, setNotebookOpen] = useState(false);
   const [archivedOpen, setArchivedOpen] = useState(false);
@@ -156,19 +157,61 @@ export default function Sidebar() {
     }
   };
 
+  // 路由变化时关闭移动端侧边栏
+  useEffect(() => {
+    setIsMobileOpen(false);
+  }, [pathname]);
+
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 h-screen flex flex-col">
+    <>
+      {/* 汉堡菜单按钮 (仅移动端) */}
+      <button
+        onClick={() => setIsMobileOpen(true)}
+        className="fixed top-4 left-4 z-40 p-2 bg-white rounded-lg shadow-md md:hidden hover:bg-gray-50"
+        aria-label="打开菜单"
+      >
+        <Menu size={24} />
+      </button>
+
+      {/* 遮罩层 (仅移动端打开时显示) */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+
+      {/* 侧边栏 */}
+      <aside
+        className={`
+          w-64 bg-white border-r border-gray-200 h-screen flex flex-col
+          fixed md:static inset-y-0 left-0 z-50
+          transform transition-transform duration-300 ease-in-out
+          ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `}
+      >
       {/* Logo/首页 */}
       <div className="p-4 border-b border-gray-200">
-        <button
-          onClick={() => router.push('/')}
-          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-            pathname === '/' ? 'bg-gray-100' : 'hover:bg-gray-50'
-          }`}
-        >
-          <Home size={20} />
-          <span className="font-semibold">思路梳理</span>
-        </button>
+        <div className="flex items-center justify-between mb-2 md:mb-0">
+          <button
+            onClick={() => router.push('/')}
+            className={`flex-1 flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+              pathname === '/' ? 'bg-gray-100' : 'hover:bg-gray-50'
+            }`}
+          >
+            <Home size={20} />
+            <span className="font-semibold">思路梳理</span>
+          </button>
+          
+          {/* 关闭按钮 (仅移动端) */}
+          <button
+            onClick={() => setIsMobileOpen(false)}
+            className="p-2 hover:bg-gray-100 rounded-lg md:hidden"
+            aria-label="关闭菜单"
+          >
+            <X size={20} />
+          </button>
+        </div>
       </div>
 
       {/* 主导航区域 */}
@@ -385,5 +428,6 @@ export default function Sidebar() {
         </button>
       </div>
     </aside>
+    </>
   );
 }
