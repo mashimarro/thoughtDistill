@@ -1,8 +1,8 @@
-# Netlify 会自动检测并部署 Next.js 项目
-# 使用 Essential Next.js Build Plugin
-
 [build]
   command = "npm run build"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+[build.environment]
+  NODE_VERSION = "18"
