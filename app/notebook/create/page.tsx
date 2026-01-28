@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { NoteSynthesisResponse } from '@/types';
 import { generateNoteId } from '@/lib/utils/format';
 
-export default function CreateNotePage() {
+function CreateNoteContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [noteData, setNoteData] = useState<NoteSynthesisResponse | null>(null);
@@ -205,5 +205,13 @@ export default function CreateNotePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CreateNotePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">加载中...</div>}>
+      <CreateNoteContent />
+    </Suspense>
   );
 }

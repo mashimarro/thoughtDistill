@@ -98,6 +98,8 @@ export default function OrganizeIdeaPage() {
   };
 
   const handleUserMessage = async (message: string) => {
+    if (!idea) return;
+    
     // 保存用户消息
     const userConv = await saveConversation('user', message);
     if (!userConv) return;
