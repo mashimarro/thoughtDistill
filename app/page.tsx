@@ -34,7 +34,8 @@ export default function Home() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
       handleSubmit();
     }
   };
@@ -45,7 +46,7 @@ export default function Home() {
         {/* Slogan */}
         <div className="text-center space-y-4">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
-            每个灵光一闪，都是你独有的资产
+            每个灵光一闪，都值得认真记录
           </h1>
         </div>
 
@@ -80,7 +81,7 @@ export default function Home() {
 
         {/* 提示文字 */}
         <p className="text-center text-sm text-gray-500">
-          按 {typeof navigator !== 'undefined' && navigator.platform.includes('Mac') ? 'Cmd' : 'Ctrl'} + Enter 快速提交
+          按 Enter 提交，Shift + Enter 换行
         </p>
       </div>
     </main>
