@@ -1,7 +1,4 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-  // Netlify 部署配置
-  output: 'standalone',
-}
+const nextConfig = {}
 
 module.exports = nextConfig
