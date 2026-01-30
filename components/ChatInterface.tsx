@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Conversation } from '@/types';
 import { formatTimestamp } from '@/lib/utils/format';
+import ProgressAxis from './ProgressAxis';
 // import VoiceInput from './VoiceInput'; // MVP 暂时取消语音功能
 import { Send } from 'lucide-react';
 
@@ -10,12 +11,21 @@ interface ChatInterfaceProps {
   conversations: Conversation[];
   onSendMessage: (message: string) => void;
   isLoading?: boolean;
+  progress?: {
+    dimensions: Array<{
+      name: string;
+      name_incomplete: string;
+      status: 'complete' | 'incomplete';
+      icon: string;
+    }>;
+  } | null;
 }
 
 export default function ChatInterface({
   conversations,
   onSendMessage,
   isLoading = false,
+  progress,
 }: ChatInterfaceProps) {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -41,6 +51,13 @@ export default function ChatInterface({
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col h-[calc(100vh-200px)]">
+      {/* 进度轴 */}
+      {progress && progress.dimensions && progress.dimensions.length > 0 && (
+        <div className="p-4 border-b border-gray-200">
+          <ProgressAxis dimensions={progress.dimensions} />
+        </div>
+      )}
+      
       {/* 消息列表 */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {conversations.map((conv, index) => (

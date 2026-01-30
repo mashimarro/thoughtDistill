@@ -51,8 +51,16 @@ export async function POST(request: NextRequest) {
 
     // 解析 JSON 响应
     const parsed = validateJSONResponse<{
+      progress: {
+        dimensions: Array<{
+          name: string;
+          name_incomplete: string;
+          status: 'complete' | 'incomplete';
+          icon: string;
+        }>;
+      };
       question: string;
-      strategy: string;
+      target_dimension: string;
       ready_for_note: boolean;
     }>(response.content);
 
@@ -63,28 +71,21 @@ export async function POST(request: NextRequest) {
       // 如果解析失败，直接返回文本（AI 可能用自然语言回复）
       return NextResponse.json({
         question: response.content,
+        progress: null,
         readiness: { ready: false },
         tokensUsed: response.tokensUsed,
       });
     }
 
-    // 如果 AI 判断可以沉淀笔记
-    if (parsed.ready_for_note) {
-      return NextResponse.json({
-        question: parsed.question,
-        readiness: {
-          ready: true,
-          reason: parsed.strategy,
-        },
-        tokensUsed: response.tokensUsed,
-      });
-    }
-
-    // 继续提问
+    // 返回包含进度轴的响应
     return NextResponse.json({
       question: parsed.question,
-      strategy: parsed.strategy,
-      readiness: { ready: false },
+      progress: parsed.progress,
+      target_dimension: parsed.target_dimension,
+      readiness: {
+        ready: parsed.ready_for_note,
+        reason: parsed.target_dimension,
+      },
       tokensUsed: response.tokensUsed,
     });
   } catch (error: any) {

@@ -23,6 +23,7 @@ export default function Home() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isWaitingForAI, setIsWaitingForAI] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [progress, setProgress] = useState<any>(null);
 
   const handleSubmit = async () => {
     if (!idea.trim() || isSubmitting) return;
@@ -140,7 +141,12 @@ export default function Home() {
         });
 
         if (aiResponse.ok) {
-          const { question, readiness } = await aiResponse.json();
+          const { question, readiness, progress: aiProgress } = await aiResponse.json();
+          
+          // 更新进度轴
+          if (aiProgress) {
+            setProgress(aiProgress);
+          }
           
           // 保存 AI 响应
           const aiSaveResponse = await apiCall('/api/conversations', {
@@ -258,6 +264,7 @@ export default function Home() {
             conversations={conversations}
             onSendMessage={handleUserMessage}
             isLoading={isWaitingForAI}
+            progress={progress}
           />
         </div>
       </div>
