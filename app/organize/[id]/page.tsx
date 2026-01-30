@@ -63,6 +63,24 @@ export default function OrganizeIdeaPage() {
     try {
       const { apiCall } = await import('@/lib/api-client');
       
+      // 1. 保存用户的原始消息
+      const userMsgResponse = await apiCall('/api/conversations', {
+        method: 'POST',
+        body: JSON.stringify({
+          idea_id: ideaId,
+          role: 'user',
+          content: idea.content,
+        }),
+      });
+
+      if (!userMsgResponse.ok) {
+        throw new Error('保存用户消息失败');
+      }
+
+      const { conversation: userConv } = await userMsgResponse.json();
+      setConversations([userConv]);
+      
+      // 2. 调用 AI 镜像反射
       const response = await apiCall('/api/ai/reflect', {
         method: 'POST',
         body: JSON.stringify({ content: idea.content }),
@@ -74,8 +92,8 @@ export default function OrganizeIdeaPage() {
 
       const { reflection } = await response.json();
 
-      // 保存 AI 响应
-      const saveResponse = await apiCall('/api/conversations', {
+      // 3. 保存 AI 响应
+      const aiMsgResponse = await apiCall('/api/conversations', {
         method: 'POST',
         body: JSON.stringify({
           idea_id: ideaId,
@@ -84,9 +102,9 @@ export default function OrganizeIdeaPage() {
         }),
       });
 
-      if (saveResponse.ok) {
-        const { conversation } = await saveResponse.json();
-        setConversations([conversation]);
+      if (aiMsgResponse.ok) {
+        const { conversation: aiConv } = await aiMsgResponse.json();
+        setConversations(prev => [...prev, aiConv]);
         setStage('clarify');
       }
     } catch (error) {

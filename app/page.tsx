@@ -47,7 +47,24 @@ export default function Home() {
       setCurrentIdeaContent(idea);
       setShowChat(true);
       
-      // 2. 调用 AI 镜像反射
+      // 2. 保存用户的原始消息
+      const userMsgResponse = await apiCall('/api/conversations', {
+        method: 'POST',
+        body: JSON.stringify({
+          idea_id: newIdea.id,
+          role: 'user',
+          content: idea,
+        }),
+      });
+
+      if (!userMsgResponse.ok) {
+        throw new Error('保存用户消息失败');
+      }
+
+      const { conversation: userConv } = await userMsgResponse.json();
+      setConversations([userConv]);
+      
+      // 3. 调用 AI 镜像反射
       const reflectResponse = await apiCall('/api/ai/reflect', {
         method: 'POST',
         body: JSON.stringify({ content: idea }),
@@ -59,8 +76,8 @@ export default function Home() {
 
       const { reflection } = await reflectResponse.json();
 
-      // 3. 保存 AI 响应
-      const saveResponse = await apiCall('/api/conversations', {
+      // 4. 保存 AI 响应
+      const aiMsgResponse = await apiCall('/api/conversations', {
         method: 'POST',
         body: JSON.stringify({
           idea_id: newIdea.id,
@@ -69,9 +86,9 @@ export default function Home() {
         }),
       });
 
-      if (saveResponse.ok) {
-        const { conversation } = await saveResponse.json();
-        setConversations([conversation]);
+      if (aiMsgResponse.ok) {
+        const { conversation: aiConv } = await aiMsgResponse.json();
+        setConversations(prev => [...prev, aiConv]);
       }
     } catch (error) {
       console.error('提交失败:', error);
