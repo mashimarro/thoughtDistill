@@ -21,20 +21,19 @@ export default function ProgressAxis({ dimensions, variant = 'top' }: ProgressAx
   if (variant === 'sidebar') {
     return (
       <div className="bg-gradient-to-b from-blue-50 to-purple-50 rounded-lg border border-gray-200 p-3 shadow-sm">
-        <div className="text-xs font-medium text-gray-600 mb-2 text-center">梳理进度</div>
         <div className="flex flex-col gap-3">
           {dimensions.map((dim, index) => (
-            <div key={index} className="flex flex-col items-center gap-1 relative">
+            <div key={index} className="flex items-center gap-2 relative">
               {/* 连接线（竖直） */}
               {index < dimensions.length - 1 && (
-                <div className="absolute left-1/2 top-[20px] w-[2px] h-[calc(100%+12px)] bg-gray-300 -translate-x-1/2 z-0" />
+                <div className="absolute left-[9px] top-[24px] w-[2px] h-[calc(100%+12px)] bg-gray-300 z-0" />
               )}
               {/* 图标 */}
-              <div className={`text-lg z-10 ${dim.status === 'complete' ? '' : ''}`}>
+              <div className={`text-lg z-10 flex-shrink-0 ${dim.status === 'complete' ? '' : ''}`}>
                 {dim.icon}
               </div>
-              {/* 文字 */}
-              <div className={`text-[10px] text-center font-medium leading-tight ${dim.status === 'complete' ? 'text-green-600' : 'text-orange-600'}`}>
+              {/* 文字（右侧） */}
+              <div className={`text-[10px] font-medium leading-tight flex-1 ${dim.status === 'complete' ? 'text-green-600' : 'text-orange-600'}`}>
                 {dim.status === 'complete' ? dim.name : dim.name_incomplete}
               </div>
             </div>
@@ -47,7 +46,6 @@ export default function ProgressAxis({ dimensions, variant = 'top' }: ProgressAx
   // 顶部横排样式（手机版）
   return (
     <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-gray-200 p-3 shadow-sm">
-      <div className="text-xs font-medium text-gray-600 mb-2">梳理进度</div>
       <div className="grid grid-cols-6 gap-1">
         {dimensions.map((dim, index) => (
           <div key={index} className="flex flex-col items-center gap-1 relative">

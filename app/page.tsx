@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ChatInterface from '@/components/ChatInterface';
+import ProgressAxis from '@/components/ProgressAxis';
 import { generateNoteId } from '@/lib/utils/format';
 
 type Conversation = {
@@ -23,7 +24,18 @@ export default function Home() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isWaitingForAI, setIsWaitingForAI] = useState(false);
   const [showChat, setShowChat] = useState(false);
-  const [progress, setProgress] = useState<any>(null);
+  
+  // 初始进度状态（全部待完善）
+  const [progress, setProgress] = useState<any>({
+    dimensions: [
+      { name: '概念清晰', name_incomplete: '阐明概念', status: 'incomplete', icon: '🔸' },
+      { name: '动机明确', name_incomplete: '挖掘动机', status: 'incomplete', icon: '🔸' },
+      { name: '证据充足', name_incomplete: '补充证据', status: 'incomplete', icon: '🔸' },
+      { name: '应用场景', name_incomplete: '寻找应用', status: 'incomplete', icon: '🔸' },
+      { name: '前后一致', name_incomplete: '澄清矛盾', status: 'incomplete', icon: '🔸' },
+      { name: '逻辑连贯', name_incomplete: '补充逻辑', status: 'incomplete', icon: '🔸' },
+    ],
+  });
 
   const handleSubmit = async () => {
     if (!idea.trim() || isSubmitting) return;
@@ -257,15 +269,24 @@ export default function Home() {
   if (showChat) {
     // 对话模式
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-4xl mx-auto p-4">
-          {/* 对话区域 */}
-          <ChatInterface
-            conversations={conversations}
-            onSendMessage={handleUserMessage}
-            isLoading={isWaitingForAI}
-            progress={progress}
-          />
+      <div className="h-full flex">
+        {/* 网页版：左侧进度轴 */}
+        <div className="hidden md:flex md:w-40 p-4 bg-gray-50">
+          {progress && progress.dimensions && progress.dimensions.length > 0 && (
+            <ProgressAxis dimensions={progress.dimensions} variant="sidebar" />
+          )}
+        </div>
+        
+        {/* 对话区域 */}
+        <div className="flex-1 bg-gray-50 p-4 overflow-hidden">
+          <div className="h-full max-w-4xl mx-auto">
+            <ChatInterface
+              conversations={conversations}
+              onSendMessage={handleUserMessage}
+              isLoading={isWaitingForAI}
+              progress={progress}
+            />
+          </div>
         </div>
       </div>
     );
@@ -273,49 +294,66 @@ export default function Home() {
 
   // 初始输入模式
   return (
-    <main className="h-full flex flex-col items-center justify-center p-4 md:p-8">
-      <div className="max-w-3xl w-full space-y-8">
-        {/* Slogan */}
-        <div className="text-center space-y-4">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
-            每个灵光一闪，都值得认真记录
-          </h1>
-        </div>
-
-        {/* 输入框 */}
-        <div className="relative">
-          <textarea
-            value={idea}
-            onChange={(e) => setIdea(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="输入你的想法，可以是模糊的、未经整理的思绪，AI会通过提问帮你梳理清楚"
-            className="w-full min-h-[200px] px-6 py-4 text-lg border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-            disabled={isSubmitting}
-          />
-          
-          <div className="absolute bottom-4 right-4 flex items-center gap-3">
-            <span className="text-sm text-gray-400">
-              {idea.length > 0 && `${idea.length} 字`}
-            </span>
-            <button
-              onClick={handleSubmit}
-              disabled={!idea.trim() || isSubmitting}
-              className={`px-6 py-2 rounded-lg font-medium transition-all ${
-                idea.trim() && !isSubmitting
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              }`}
-            >
-              {isSubmitting ? '提交中...' : '开始整理'}
-            </button>
-          </div>
-        </div>
-
-        {/* 提示文字 */}
-        <p className="text-center text-sm text-gray-500">
-          按 Enter 提交，Shift + Enter 换行
-        </p>
+    <div className="h-full flex">
+      {/* 网页版：左侧进度轴 */}
+      <div className="hidden md:flex md:w-40 p-4 bg-gray-50">
+        {progress && progress.dimensions && progress.dimensions.length > 0 && (
+          <ProgressAxis dimensions={progress.dimensions} variant="sidebar" />
+        )}
       </div>
-    </main>
+      
+      {/* 右侧主内容区域 */}
+      <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 bg-gray-50">
+        {/* 手机版：顶部进度轴 */}
+        <div className="md:hidden w-full max-w-3xl mb-6">
+          {progress && progress.dimensions && progress.dimensions.length > 0 && (
+            <ProgressAxis dimensions={progress.dimensions} variant="top" />
+          )}
+        </div>
+        
+        <div className="max-w-3xl w-full space-y-8">
+          {/* Slogan */}
+          <div className="text-center space-y-4">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+              每个灵光一闪，都值得认真记录
+            </h1>
+          </div>
+
+          {/* 输入框 */}
+          <div className="relative">
+            <textarea
+              value={idea}
+              onChange={(e) => setIdea(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="输入你的想法，可以是模糊的、未经整理的思绪，AI会通过提问帮你梳理清楚"
+              className="w-full min-h-[200px] px-6 py-4 text-lg border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              disabled={isSubmitting}
+            />
+            
+            <div className="absolute bottom-4 right-4 flex items-center gap-3">
+              <span className="text-sm text-gray-400">
+                {idea.length > 0 && `${idea.length} 字`}
+              </span>
+              <button
+                onClick={handleSubmit}
+                disabled={!idea.trim() || isSubmitting}
+                className={`px-6 py-2 rounded-lg font-medium transition-all ${
+                  idea.trim() && !isSubmitting
+                    ? 'bg-blue-600 text-white hover:bg-blue-700'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                {isSubmitting ? '提交中...' : '开始整理'}
+              </button>
+            </div>
+          </div>
+
+          {/* 提示文字 */}
+          <p className="text-center text-sm text-gray-500">
+            按 Enter 提交，Shift + Enter 换行
+          </p>
+        </div>
+      </main>
+    </div>
   );
 }

@@ -50,25 +50,16 @@ export default function ChatInterface({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col md:flex-row h-[calc(100vh-200px)]">
-      {/* 进度轴 - 网页版左侧竖排，手机版顶部横排 */}
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col h-[calc(100vh-200px)]">
+      {/* 手机版：顶部进度轴 */}
       {progress && progress.dimensions && progress.dimensions.length > 0 && (
-        <>
-          {/* 手机版：顶部横排 */}
-          <div className="md:hidden p-3 border-b border-gray-200">
-            <ProgressAxis dimensions={progress.dimensions} variant="top" />
-          </div>
-          {/* 网页版：左侧竖排 */}
-          <div className="hidden md:block p-3 border-r border-gray-200 w-32">
-            <ProgressAxis dimensions={progress.dimensions} variant="sidebar" />
-          </div>
-        </>
+        <div className="md:hidden p-3 border-b border-gray-200">
+          <ProgressAxis dimensions={progress.dimensions} variant="top" />
+        </div>
       )}
       
-      {/* 右侧内容区域 */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* 消息列表 */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* 消息列表 */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {conversations.map((conv, index) => (
           <div
             key={conv.id || index}
@@ -127,7 +118,6 @@ export default function ChatInterface({
         <p className="text-xs text-gray-500 mt-2">
           提示：按 Enter 发送，Shift+Enter 换行
         </p>
-      </div>
       </div>
     </div>
   );
