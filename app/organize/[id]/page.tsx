@@ -101,23 +101,40 @@ export default function OrganizeIdeaPage() {
     if (!idea) return;
     
     // 检测用户是否表达了要保存笔记的意图
-    const saveIntentKeywords = ['保存', '沉淀', '生成', '确认'];
-    const noteKeywords = ['笔记', '卡片'];
+    // 如果用户说"确认"、"好的"、"可以"，且当前已经有 pendingNote 或 AI 已判断 ready，则直接保存
+    // 如果用户明确说"保存笔记"、"生成笔记"，则无论什么状态都直接保存
     const messageLower = message.toLowerCase();
     
-    const hasSaveIntent = saveIntentKeywords.some(keyword => messageLower.includes(keyword));
+    const confirmKeywords = ['确认', '好的', '可以', '行', '对', '是的', '没问题'];
+    const saveKeywords = ['保存', '沉淀', '生成'];
+    const noteKeywords = ['笔记', '卡片'];
+    
+    const hasConfirm = confirmKeywords.some(keyword => messageLower.includes(keyword));
+    const hasSaveKeyword = saveKeywords.some(keyword => messageLower.includes(keyword));
     const hasNoteKeyword = noteKeywords.some(keyword => messageLower.includes(keyword));
     
-    // 如果用户明确表达要保存
-    if (hasSaveIntent && hasNoteKeyword) {
-      // 保存用户消息
+    // 情况1：用户明确说"保存笔记"、"生成笔记"等
+    if (hasSaveKeyword && hasNoteKeyword) {
       const userConv = await saveConversation('user', message);
       if (userConv) {
         setConversations((prev) => [...prev, userConv]);
       }
-      
-      // 直接生成并保存笔记，不需要二次确认
       await generateAndSaveNote(userConv ? [...conversations, userConv] : conversations);
+      return;
+    }
+    
+    // 情况2：AI 已经问"可以生成笔记了"，用户回复"确认"、"好的"等
+    if (hasConfirm && (pendingNote || stage === 'ready')) {
+      const userConv = await saveConversation('user', message);
+      if (userConv) {
+        setConversations((prev) => [...prev, userConv]);
+      }
+      // 如果已有笔记草稿，直接保存；否则生成后保存
+      if (pendingNote) {
+        await handleSaveNote();
+      } else {
+        await generateAndSaveNote(userConv ? [...conversations, userConv] : conversations);
+      }
       return;
     }
     
