@@ -32,7 +32,7 @@ export default function ProgressAxis({ dimensions, variant = 'top' }: ProgressAx
               {dim.icon}
             </div>
             {/* 文字（右侧） */}
-            <div className={`text-sm font-medium leading-tight flex-1 ${dim.status === 'complete' ? 'text-green-600' : 'text-orange-600'}`}>
+            <div className={`text-base font-medium leading-tight flex-1 ${dim.status === 'complete' ? 'text-green-600' : 'text-orange-600'}`}>
               {dim.status === 'complete' ? dim.name : dim.name_incomplete}
             </div>
           </div>
@@ -55,7 +55,7 @@ export default function ProgressAxis({ dimensions, variant = 'top' }: ProgressAx
             {dim.icon}
           </div>
           {/* 文字 */}
-          <div className={`text-[10px] text-center font-medium leading-tight ${dim.status === 'complete' ? 'text-green-600' : 'text-orange-600'}`}>
+          <div className={`text-xs text-center font-medium leading-tight ${dim.status === 'complete' ? 'text-green-600' : 'text-orange-600'}`}>
             {dim.status === 'complete' ? dim.name : dim.name_incomplete}
           </div>
         </div>

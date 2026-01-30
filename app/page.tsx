@@ -25,17 +25,8 @@ export default function Home() {
   const [isWaitingForAI, setIsWaitingForAI] = useState(false);
   const [showChat, setShowChat] = useState(false);
   
-  // 初始进度状态（全部待完善）
-  const [progress, setProgress] = useState<any>({
-    dimensions: [
-      { name: '概念清晰', name_incomplete: '阐明概念', status: 'incomplete', icon: '🔸' },
-      { name: '动机明确', name_incomplete: '挖掘动机', status: 'incomplete', icon: '🔸' },
-      { name: '证据充足', name_incomplete: '补充证据', status: 'incomplete', icon: '🔸' },
-      { name: '应用场景', name_incomplete: '寻找应用', status: 'incomplete', icon: '🔸' },
-      { name: '前后一致', name_incomplete: '澄清矛盾', status: 'incomplete', icon: '🔸' },
-      { name: '逻辑连贯', name_incomplete: '补充逻辑', status: 'incomplete', icon: '🔸' },
-    ],
-  });
+  // 初始进度状态：null（不显示）
+  const [progress, setProgress] = useState<any>(null);
 
   const handleSubmit = async () => {
     if (!idea.trim() || isSubmitting) return;
@@ -108,7 +99,7 @@ export default function Home() {
           method: 'POST',
           body: JSON.stringify({
             ideaContent: idea,
-            conversationHistory: [userConv, aiConv],
+            conversations: [userConv, aiConv],
           }),
         });
         
