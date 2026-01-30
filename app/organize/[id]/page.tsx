@@ -100,44 +100,6 @@ export default function OrganizeIdeaPage() {
   const handleUserMessage = async (message: string) => {
     if (!idea) return;
     
-    // 检测用户是否表达了要保存笔记的意图
-    // 如果用户说"确认"、"好的"、"可以"，且当前已经有 pendingNote 或 AI 已判断 ready，则直接保存
-    // 如果用户明确说"保存笔记"、"生成笔记"，则无论什么状态都直接保存
-    const messageLower = message.toLowerCase();
-    
-    const confirmKeywords = ['确认', '好的', '可以', '行', '对', '是的', '没问题'];
-    const saveKeywords = ['保存', '沉淀', '生成'];
-    const noteKeywords = ['笔记', '卡片'];
-    
-    const hasConfirm = confirmKeywords.some(keyword => messageLower.includes(keyword));
-    const hasSaveKeyword = saveKeywords.some(keyword => messageLower.includes(keyword));
-    const hasNoteKeyword = noteKeywords.some(keyword => messageLower.includes(keyword));
-    
-    // 情况1：用户明确说"保存笔记"、"生成笔记"等
-    if (hasSaveKeyword && hasNoteKeyword) {
-      const userConv = await saveConversation('user', message);
-      if (userConv) {
-        setConversations((prev) => [...prev, userConv]);
-      }
-      await generateAndSaveNote(userConv ? [...conversations, userConv] : conversations);
-      return;
-    }
-    
-    // 情况2：AI 已经问"可以生成笔记了"，用户回复"确认"、"好的"等
-    if (hasConfirm && (pendingNote || stage === 'ready')) {
-      const userConv = await saveConversation('user', message);
-      if (userConv) {
-        setConversations((prev) => [...prev, userConv]);
-      }
-      // 如果已有笔记草稿，直接保存；否则生成后保存
-      if (pendingNote) {
-        await handleSaveNote();
-      } else {
-        await generateAndSaveNote(userConv ? [...conversations, userConv] : conversations);
-      }
-      return;
-    }
-    
     // 保存用户消息
     const userConv = await saveConversation('user', message);
     if (!userConv) return;
@@ -145,7 +107,7 @@ export default function OrganizeIdeaPage() {
     setConversations((prev) => [...prev, userConv]);
     setIsWaitingForAI(true);
 
-    // 调用 AI 进行苏格拉底提问
+    // 调用 AI 进行苏格拉底提问，让 AI 通过语义判断用户意图
     try {
       const { apiCall } = await import('@/lib/api-client');
       
@@ -169,11 +131,11 @@ export default function OrganizeIdeaPage() {
         setConversations((prev) => [...prev, aiConv]);
       }
 
-      // 当 AI 判断准备好时，自动生成笔记
+      // 当 AI 判断用户想要保存笔记时（ready_for_note: true），直接生成并保存
       if (readiness && readiness.ready === true) {
         setStage('ready');
-        // 自动调用生成笔记
-        await autoSynthesizeNote([...conversations, userConv, aiConv]);
+        // 直接生成并保存笔记，不需要用户再次确认
+        await generateAndSaveNote([...conversations, userConv, aiConv]);
       }
     } catch (error) {
       console.error('AI 提问失败:', error);
@@ -378,47 +340,13 @@ export default function OrganizeIdeaPage() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-          {/* 侧边栏 */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sticky top-4">
-              <h3 className="font-semibold mb-2">原始想法</h3>
-              <p className="text-sm text-gray-600 mb-4">{idea.content}</p>
-              
-              <div className="border-t pt-4">
-                <h4 className="text-sm font-semibold mb-2">整理进度</h4>
-                <div className="space-y-2 text-sm">
-                  <div className={stage === 'reflect' ? 'text-primary font-semibold' : 'text-gray-500'}>
-                    ✓ 镜像反射
-                  </div>
-                  <div className={stage === 'clarify' ? 'text-primary font-semibold' : 'text-gray-500'}>
-                    {stage === 'clarify' ? '→' : '○'} 深入对话
-                  </div>
-                  <div className={stage === 'ready' ? 'text-primary font-semibold' : 'text-gray-500'}>
-                    {stage === 'ready' ? '→' : '○'} 沉淀笔记
-                  </div>
-                </div>
-              </div>
-
-              {pendingNote && (
-                <button
-                  onClick={handleSaveNote}
-                  className="w-full mt-4 bg-accent-orange text-white px-4 py-2 rounded-lg hover:opacity-90"
-                >
-                  保存笔记
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* 对话区域 */}
-          <div className="lg:col-span-3">
-            <ChatInterface
-              conversations={conversations}
-              onSendMessage={handleUserMessage}
-              isLoading={isWaitingForAI}
-            />
-          </div>
+        {/* 对话区域 */}
+        <div className="max-w-4xl mx-auto">
+          <ChatInterface
+            conversations={conversations}
+            onSendMessage={handleUserMessage}
+            isLoading={isWaitingForAI}
+          />
         </div>
       </div>
     </div>

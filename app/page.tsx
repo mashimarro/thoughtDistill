@@ -93,23 +93,7 @@ export default function Home() {
   const handleUserMessage = async (message: string) => {
     if (!currentIdeaId) return;
     
-    // 检测保存意图
-    const messageLower = message.toLowerCase();
-    const confirmKeywords = ['确认', '好的', '可以', '行', '对', '是的', '没问题'];
-    const saveKeywords = ['保存', '沉淀', '生成'];
-    const noteKeywords = ['笔记', '卡片'];
-    
-    const hasConfirm = confirmKeywords.some(keyword => messageLower.includes(keyword));
-    const hasSaveKeyword = saveKeywords.some(keyword => messageLower.includes(keyword));
-    const hasNoteKeyword = noteKeywords.some(keyword => messageLower.includes(keyword));
-    
-    // 如果用户明确要保存笔记
-    if ((hasSaveKeyword && hasNoteKeyword) || (hasConfirm && conversations.some(c => c.content.includes('可以生成笔记')))) {
-      await saveNote(message);
-      return;
-    }
-    
-    // 正常对话流程
+    // 正常对话流程，依赖 AI 语义判断用户意图
     try {
       const { apiCall } = await import('@/lib/api-client');
       
@@ -129,7 +113,7 @@ export default function Home() {
         
         setIsWaitingForAI(true);
         
-        // 调用 AI 继续对话
+        // 调用 AI 继续对话，让 AI 通过语义判断用户意图
         const aiResponse = await apiCall('/api/ai/clarify', {
           method: 'POST',
           body: JSON.stringify({
@@ -155,9 +139,11 @@ export default function Home() {
             const { conversation: aiConv } = await aiSaveResponse.json();
             setConversations(prev => [...prev, aiConv]);
             
-            // 如果 AI 判断可以生成笔记了，提示用户
+            // 当 AI 判断用户想要保存笔记时，直接生成并保存
             if (readiness && readiness.ready === true) {
-              // AI 已经在 question 中提示用户了
+              setIsWaitingForAI(false); // 先关闭等待动画
+              await saveNote(); // 直接保存笔记，不需要传 message（已经保存过了）
+              return;
             }
           }
         }
@@ -249,13 +235,7 @@ export default function Home() {
     // 对话模式
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-5xl mx-auto p-4">
-          {/* 顶部信息栏 */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
-            <h3 className="font-semibold mb-2">原始想法</h3>
-            <p className="text-sm text-gray-600">{currentIdeaContent}</p>
-          </div>
-
+        <div className="max-w-4xl mx-auto p-4">
           {/* 对话区域 */}
           <ChatInterface
             conversations={conversations}
