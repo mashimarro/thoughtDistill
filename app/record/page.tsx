@@ -49,6 +49,13 @@ export default function RecordPage() {
     router.push('/');
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSave();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
@@ -72,13 +79,15 @@ export default function RecordPage() {
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
+                onKeyDown={handleKeyDown}
                 placeholder="输入你的想法，可以是模糊的、未经整理的思绪，AI会通过提问帮你梳理清楚"
                 className="w-full min-h-[300px] p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
               />
             </div>
 
-            <div className="text-sm text-gray-500 text-right">
-              {content.length} / 5000 字
+            <div className="text-sm text-gray-500 flex justify-between items-center">
+              <span className="text-xs">按 Enter 提交，Shift + Enter 换行</span>
+              <span>{content.length} / 5000 字</span>
             </div>
 
             <button
