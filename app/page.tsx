@@ -102,6 +102,22 @@ export default function Home() {
       if (aiMsgResponse.ok) {
         const { conversation: aiConv } = await aiMsgResponse.json();
         setConversations(prev => [...prev, aiConv]);
+        
+        // 5. 调用一次 clarify 来更新进度轴
+        const clarifyResponse = await apiCall('/api/ai/clarify', {
+          method: 'POST',
+          body: JSON.stringify({
+            ideaContent: idea,
+            conversationHistory: [userConv, aiConv],
+          }),
+        });
+        
+        if (clarifyResponse.ok) {
+          const { progress: aiProgress } = await clarifyResponse.json();
+          if (aiProgress) {
+            setProgress(aiProgress);
+          }
+        }
       }
     } catch (error) {
       console.error('提交失败:', error);
@@ -249,6 +265,9 @@ export default function Home() {
       }
 
       const { note: savedNote } = await saveResponse.json();
+      
+      // 触发侧边栏刷新
+      window.dispatchEvent(new Event('refreshSidebar'));
       
       // 更新想法状态
       await apiCall(`/api/ideas/${currentIdeaId}`, {
