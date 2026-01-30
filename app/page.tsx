@@ -7,6 +7,9 @@ export default function Home() {
   const router = useRouter();
   const [idea, setIdea] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // 调试：监控 idea 状态
+  console.log('idea:', idea, 'trimmed:', idea.trim(), 'length:', idea.length);
 
   const handleSubmit = async () => {
     if (!idea.trim() || isSubmitting) return;

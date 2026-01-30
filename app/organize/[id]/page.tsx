@@ -110,21 +110,15 @@ export default function OrganizeIdeaPage() {
     
     // 如果用户明确表达要保存
     if (hasSaveIntent && hasNoteKeyword) {
-      // 如果已有待保存的笔记，直接保存
-      if (pendingNote) {
-        await handleSaveNote();
-        return;
+      // 保存用户消息
+      const userConv = await saveConversation('user', message);
+      if (userConv) {
+        setConversations((prev) => [...prev, userConv]);
       }
-      // 如果还没生成笔记，立即触发生成
-      else {
-        const userConv = await saveConversation('user', message);
-        if (userConv) {
-          setConversations((prev) => [...prev, userConv]);
-        }
-        setIsWaitingForAI(true);
-        await autoSynthesizeNote(userConv ? [...conversations, userConv] : conversations);
-        return;
-      }
+      
+      // 直接生成并保存笔记，不需要二次确认
+      await generateAndSaveNote(userConv ? [...conversations, userConv] : conversations);
+      return;
     }
     
     // 保存用户消息
@@ -173,6 +167,65 @@ export default function OrganizeIdeaPage() {
   };
 
   // 自动生成笔记并显示在对话中
+  const generateAndSaveNote = async (allConversations: Conversation[]) => {
+    setIsWaitingForAI(true);
+    try {
+      const { apiCall } = await import('@/lib/api-client');
+      
+      // 调用 AI 生成笔记
+      const response = await apiCall('/api/ai/synthesize', {
+        method: 'POST',
+        body: JSON.stringify({
+          idea_id: ideaId,
+          conversations: allConversations,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('生成笔记失败');
+      }
+
+      const { note } = await response.json();
+      
+      // 生成笔记 ID
+      const noteId = generateNoteId(note.title);
+      
+      // 直接保存笔记
+      const saveResponse = await apiCall('/api/notes', {
+        method: 'POST',
+        body: JSON.stringify({
+          id: noteId,
+          idea_id: ideaId,
+          ...note,
+          related_notes: [],
+        }),
+      });
+
+      if (!saveResponse.ok) {
+        throw new Error('保存笔记失败');
+      }
+
+      const { note: savedNote } = await saveResponse.json();
+      
+      // 更新想法状态为已完成
+      await apiCall(`/api/ideas/${ideaId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'completed' }),
+      });
+      
+      // 显示成功提示
+      alert('✅ 笔记已保存！');
+      
+      // 跳转到笔记详情页
+      router.push(`/notebook/${savedNote.id}`);
+    } catch (error) {
+      console.error('生成并保存笔记失败:', error);
+      alert('保存失败，请重试');
+    } finally {
+      setIsWaitingForAI(false);
+    }
+  };
+
   const autoSynthesizeNote = async (allConversations: Conversation[]) => {
     try {
       setIsWaitingForAI(true);
